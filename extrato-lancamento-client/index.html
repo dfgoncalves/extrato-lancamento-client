@@ -1,0 +1,102 @@
+<html ng-app="extratoLancamento">
+    <head>
+        <title>Extrato de Lançamento</title>
+        <link rel="stylesheet" type="text/css" href="vendors/bootstrap/css/bootstrap.css"/>
+        <link rel="stylesheet" type="text/css" href="css/extrato.css"/>
+        <script src="vendors/angular/angular.js"></script>
+        <script>
+                
+                var app = angular.module("extratoLancamento", []);
+                app.controller("extratoLancamentoController", function ($scope, $http){
+                    $scope.msgErro = true;
+                    $http.get("http://localhost:8080/extrato/banco/0/agencia/0/conta/'0'").then(function(response) {
+                        $scope.lancamentos = response.data;
+                    });
+                    
+                    $scope.filtrar = function(){
+                        
+                        if($scope.banco != undefined && $scope.banco > 0 
+                           && $scope.agencia != undefined && $scope.agencia > 0 
+                           && $scope.conta != undefined && $scope.conta >0){
+                                $scope.lancamentos = [];
+                                $scope.conta = $scope.pad($scope.conta, 14);
+                                $http.get("http://localhost:8080/extrato/banco/" + $scope.banco + "/agencia/"+ $scope.agencia +"/conta/" + $scope.conta).then(function(response) {
+                                    $scope.lancamentos = response.data;
+                                });
+                        } else {
+                            $scope.msgErro = false;
+                            return;
+                        }
+                    }
+                    
+                    $scope.limpar = function(){
+                        $scope.lancamentos = [];
+                        $scope.banco = "";
+                        $scope.agencia = "";
+                        $scope.conta = "";
+                        $http.get("http://localhost:8080/extrato/banco/0/agencia/0/conta/'0'").then(function(response) {
+                            $scope.lancamentos = response.data;
+                        });
+                    }
+                    
+                    $scope.pad  = function(str, length){
+                      const resto = length - String(str).length;
+                      return '0'.repeat(resto > 0 ? resto : '0') + str;
+                    } 
+                    
+                });
+            
+     
+            
+        </script>
+    </head>
+    <body ng-controller="extratoLancamentoController">
+        
+        <div style="margin-top:10px; margin-left:10px; margin-right:10px;">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h1 class="panel-title" style="text-align: center">EXTRATO DE LANÇAMENTOS - CONTA CORRENTE</h1>
+                </div>
+            
+                <div class="panel-body">
+                <label>Banco:</label>
+                <input style="margin-right:10px;" type="text" ng-model="banco" placeholder="Digite o banco">
+                <label>Agência:</label>
+                <input style="margin-right:10px;" type="text" ng-model="agencia" placeholder="Digite a agência">
+                <label>Conta:</label>
+                <input style="margin-right:10px;" type="text" ng-model="conta" placeholder="Digite a conta corrente">
+                <button type="button" class="btn btn-sm btn-primary" ng-click="filtrar()">Filtrar</button>
+                <button type="button" class="btn btn-sm btn-primary" ng-click="limpar()">Limpar</button>
+                <hr>
+
+            
+                <label>Lançamentos realizados:</label>
+                <div class="table-responsive">
+                    <table class="table table-striped" style= "margin-left:0px; margin-right:0px;">
+                        <tr>
+                            <th>Data do lançamento</th>
+                            <th>Descrição</th>
+                            <th>Número</th>
+                            <th>Situação</th>
+                            <th>Data de Confirmação</th>
+                            <th>Dados bancários</th>
+                            <th>Valor final</th>
+                        </tr>
+                        <tr ng-repeat="lancamento in lancamentos">
+                            <td>{{lancamento.dataLancamento}}</td>
+                            <td>{{lancamento.descricao}}</td>
+                            <td>{{lancamento.numero}}</td>
+                            <td>{{lancamento.situacao}}</td>
+                            <td>{{lancamento.dataConfirmacaoLancamento}}</td>
+                            <td>{{"BANCO " + lancamento.banco + " Ag " + lancamento.agencia + " CC " + lancamento.contacorrente}}</td>
+                            <td>{{"R$ " + lancamento.valorFinal}}</td>
+                        </tr>
+                    </table>
+                    </hr>
+
+                </div>
+            </div>
+        </div>
+    
+    </body>
+</html>
